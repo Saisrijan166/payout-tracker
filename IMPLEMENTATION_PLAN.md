@@ -682,7 +682,7 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `feat(frontend): add brand dashboard for campaign creation and budget tracking`
 
 **Phase 11: Creator dashboard**
-- [ ] Build `EarningsSummary`, the live campaign cards, `SubmitPostForm`, the my-submissions table and `SimulateViewsForm`. Refresh the data with SWR's `mutate()`.
+- [x] Build `EarningsSummary`, the live campaign cards, `SubmitPostForm`, the my-submissions table and `SimulateViewsForm`. Refresh the data with SWR's `mutate()`.
 - Commit: `feat(frontend): add creator dashboard to browse campaigns, submit posts and track earnings`
 
 **Phase 12: Redis cache (bonus)**
