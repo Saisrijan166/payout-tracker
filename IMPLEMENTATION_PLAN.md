@@ -702,7 +702,8 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `ci: run lint, typecheck and tests on push`
 
 **Phase 16: Deployment**
-- [ ] Complete §12 steps 1–6 (Atlas, Render, seed, Vercel, CORS and the smoke test). Add `render.yaml` if you use it.
+- [x] Add `render.yaml` (Render Blueprint) and production settings (`trust proxy`, pinned Node 22, generated `JWT_SECRET`).
+- [ ] Complete §12 steps 1–6 (Atlas, Render, seed, Vercel, CORS and the smoke test). Pending: needs the account owner to create the Atlas, Render and Vercel accounts.
 - Commit: `chore(deploy): add render blueprint and production configuration`
 
 **Phase 17: Documentation**

@@ -1,0 +1,29 @@
+# Render Blueprint for the API (New > Blueprint, pick this repo).
+# Values marked `sync: false` are prompted for in the Render dashboard on first deploy.
+services:
+  - type: web
+    name: memed-payouts-api
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: backend
+    # --include=dev keeps TypeScript available for the build even though NODE_ENV=production.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: CORS_ORIGIN
+        sync: false
+      - key: LOG_LEVEL
+        value: info
