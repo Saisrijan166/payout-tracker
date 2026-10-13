@@ -16,7 +16,9 @@
     "format": "prettier --write .",
     "test": "jest --runInBand",
     "test:unit": "jest tests/unit",
-    "test:coverage": "jest --runInBand --coverage"
+    "test:coverage": "jest --runInBand --coverage",
+    "seed": "tsx src/scripts/seed.ts",
+    "seed:prod": "node dist/scripts/seed.js"
   },
   "config": {
     "mongodbMemoryServer": {

@@ -668,7 +668,7 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `test(payouts): prove no overspend or double-pay under concurrent view updates`
 
 **Phase 8: Seed data**
-- [ ] Write `scripts/seed.ts`, which creates a demo brand and creator, two campaigns and a few submissions. It must be safe to rerun: it upserts by email and `postKey`.
+- [x] Write `scripts/seed.ts`, which creates a demo brand and creator, two campaigns and a few submissions. It must be safe to rerun: it upserts by email and `postKey`.
 - Commit: `chore(backend): add seed script for demo accounts and campaigns`
 
 **Phase 9: Frontend foundation and auth**
