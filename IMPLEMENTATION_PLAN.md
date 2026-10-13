@@ -678,7 +678,7 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `feat(frontend): add auth flow with jwt storage and role-based route guards`
 
 **Phase 10: Brand dashboard**
-- [ ] Build `CampaignForm` with the milestone row editor and client-side checks, the `BudgetBar`, the my-campaigns list and the campaign detail page with its submissions table.
+- [x] Build `CampaignForm` with the milestone row editor and client-side checks, the `BudgetBar`, the my-campaigns list and the campaign detail page with its submissions table.
 - Commit: `feat(frontend): add brand dashboard for campaign creation and budget tracking`
 
 **Phase 11: Creator dashboard**
