@@ -10,7 +10,10 @@ export type ErrorCode =
   | 'PAYLOAD_TOO_LARGE'
   | 'RATE_LIMITED'
   | 'SERVICE_UNAVAILABLE'
-  | 'INTERNAL_ERROR';
+  | 'INTERNAL_ERROR'
+  // auth
+  | 'EMAIL_TAKEN'
+  | 'INVALID_CREDENTIALS';
 
 /**
  * An error that maps directly to an HTTP response.

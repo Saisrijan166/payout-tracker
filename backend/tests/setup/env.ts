@@ -4,3 +4,7 @@ process.env.LOG_LEVEL = 'silent';
 // Each integration suite connects to its own in-memory replica set; this value only satisfies env validation.
 process.env.MONGODB_URI = 'mongodb://127.0.0.1:27017/unused-in-tests';
 process.env.CORS_ORIGIN = 'http://localhost:3000';
+process.env.JWT_SECRET = 'test-only-secret-that-is-at-least-32-characters';
+process.env.JWT_EXPIRES_IN = '1h';
+// Minimum cost keeps password hashing fast in tests.
+process.env.BCRYPT_ROUNDS = '4';

@@ -634,9 +634,9 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `feat(backend): bootstrap express app with env validation, db connection and error handling`
 
 **Phase 2: Auth**
-- [ ] Add the User model, bcrypt hashing, the Zod schemas and the signup, login and me routes.
-- [ ] Add `requireAuth`, `requireRole`, `express.d.ts` and `authLimiter`.
-- [ ] Write the integration tests in `auth.test.ts`.
+- [x] Add the User model, bcrypt hashing, the Zod schemas and the signup, login and me routes.
+- [x] Add `requireAuth`, `requireRole`, `express.d.ts` and `authLimiter`.
+- [x] Write the integration tests in `auth.test.ts`.
 - Commit: `feat(auth): add jwt signup and login with brand and creator roles`
 
 **Phase 3: Payout domain (pure functions) + unit tests**
