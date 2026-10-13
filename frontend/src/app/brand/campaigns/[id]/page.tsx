@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { BudgetBar } from '@/components/BudgetBar';
 import { MilestoneLadder, PlatformBadge, StatusBadge } from '@/components/CampaignBadges';
 import { SubmissionsTable } from '@/components/SubmissionsTable';
-import { Card, EmptyState, ErrorAlert, Loading } from '@/components/ui';
+import { Card, EmptyState, ErrorAlert, Loading, PageHeader, SectionHeader } from '@/components/ui';
 import { formatDate } from '@/lib/format';
 import type { Campaign, Submission } from '@/lib/types';
 
@@ -19,36 +19,55 @@ export default function BrandCampaignPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/brand" className="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+      <Link
+        href="/brand"
+        className="inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500"
+      >
         ← All campaigns
       </Link>
       {isLoading && <Loading label="Loading campaign" />}
       <ErrorAlert error={error} />
       {data && (
         <>
-          <Card className="space-y-4">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-                  {data.campaign.name}
-                </h1>
-                <p className="text-sm text-slate-500">
-                  Created {formatDate(data.campaign.createdAt)}
-                </p>
-              </div>
-              <div className="flex gap-1.5">
-                <PlatformBadge platform={data.campaign.platform} />
-                <StatusBadge status={data.campaign.status} />
-              </div>
-            </div>
-            <BudgetBar totalBudget={data.campaign.totalBudget} spent={data.campaign.spent} />
-            <MilestoneLadder milestones={data.campaign.milestones} />
-          </Card>
+          <div className="space-y-4">
+            <PageHeader
+              title={data.campaign.name}
+              subtitle={`Created ${formatDate(data.campaign.createdAt)}. Budget, payout ladder and every post submitted to this campaign.`}
+              actions={
+                <>
+                  <PlatformBadge platform={data.campaign.platform} />
+                  <StatusBadge status={data.campaign.status} />
+                </>
+              }
+            />
+            <Card className="grid gap-6 md:grid-cols-2">
+              <section aria-labelledby="budget-heading" className="space-y-3">
+                <SectionHeader
+                  id="budget-heading"
+                  as="h3"
+                  title="Budget"
+                  hint="Paid out so far against the total budget."
+                />
+                <BudgetBar totalBudget={data.campaign.totalBudget} spent={data.campaign.spent} />
+              </section>
+              <section aria-labelledby="ladder-heading" className="space-y-3">
+                <SectionHeader
+                  id="ladder-heading"
+                  as="h3"
+                  title="Payout ladder"
+                  hint="A post earns the payout of the highest milestone it reaches."
+                />
+                <MilestoneLadder milestones={data.campaign.milestones} />
+              </section>
+            </Card>
+          </div>
 
-          <section className="space-y-3">
-            <h2 className="text-base font-semibold text-slate-900">
-              Submissions ({data.submissions.length})
-            </h2>
+          <section aria-labelledby="submissions-heading" className="space-y-3">
+            <SectionHeader
+              id="submissions-heading"
+              title={`Submissions (${data.submissions.length})`}
+              hint="Each post's views, earnings and payments. Refreshes every 15 seconds."
+            />
             {data.submissions.length === 0 ? (
               <EmptyState title="No posts submitted yet">
                 Creators will appear here once they submit posts to this campaign.

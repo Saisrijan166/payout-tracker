@@ -1,5 +1,6 @@
 // Client-side checks that mirror the API's ladder rules for instant feedback.
 // The API remains the source of truth and re-validates everything.
+import { formatINR, formatNumber } from './format';
 
 export const MAX_MILESTONES = 10;
 
@@ -14,6 +15,16 @@ export interface CampaignDraft {
   milestones: MilestoneDraft[];
 }
 
+/** Errors keyed by the field they belong to, so each can be shown under that field. */
+export interface CampaignFieldErrors {
+  name?: string;
+  totalBudget?: string;
+  /** Problems with the ladder as a whole (none, or too many rungs). */
+  ladder?: string;
+  /** Per milestone row, by its index in the form. */
+  rows: Record<number, { views?: string; payout?: string }>;
+}
+
 const toPositiveInteger = (value: string): number | null => {
   const trimmed = value.trim();
   if (!/^\d+$/.test(trimmed)) return null;
@@ -22,48 +33,63 @@ const toPositiveInteger = (value: string): number | null => {
 };
 
 export function validateCampaignDraft(draft: CampaignDraft): {
-  issues: string[];
+  valid: boolean;
+  errors: CampaignFieldErrors;
   totalBudget: number | null;
   milestones: { views: number; payout: number }[];
 } {
-  const issues: string[] = [];
-  if (draft.name.trim().length < 3) issues.push('Name must be at least 3 characters');
+  const errors: CampaignFieldErrors = { rows: {} };
+  const rowError = (index: number, field: 'views' | 'payout', message: string) => {
+    const row = (errors.rows[index] ??= {});
+    row[field] ??= message;
+  };
+
+  if (draft.name.trim().length < 3) errors.name = 'Use at least 3 characters';
 
   const totalBudget = toPositiveInteger(draft.totalBudget);
-  if (totalBudget === null) issues.push('Budget must be a whole number of rupees above zero');
+  if (totalBudget === null) errors.totalBudget = 'Enter a whole number of rupees above 0';
 
-  if (draft.milestones.length === 0) issues.push('Add at least one milestone');
-  if (draft.milestones.length > MAX_MILESTONES)
-    issues.push(`Use at most ${MAX_MILESTONES} milestones`);
+  if (draft.milestones.length === 0) errors.ladder = 'Add at least one milestone';
+  if (draft.milestones.length > MAX_MILESTONES) {
+    errors.ladder = `Use at most ${MAX_MILESTONES} milestones`;
+  }
 
-  const milestones: { views: number; payout: number }[] = [];
+  const parsed: { index: number; views: number; payout: number }[] = [];
   draft.milestones.forEach((row, index) => {
     const views = toPositiveInteger(row.views);
     const payout = toPositiveInteger(row.payout);
-    if (views === null)
-      issues.push(`Milestone ${index + 1}: views must be a positive whole number`);
-    if (payout === null)
-      issues.push(`Milestone ${index + 1}: payout must be a positive whole number`);
-    if (views !== null && payout !== null) milestones.push({ views, payout });
+    if (views === null) rowError(index, 'views', 'Enter a whole number above 0');
+    if (payout === null) rowError(index, 'payout', 'Enter a whole number above 0');
+    if (views !== null && payout !== null) parsed.push({ index, views, payout });
   });
 
-  const sorted = [...milestones].sort((a, b) => a.views - b.views);
-  sorted.forEach((current, index) => {
-    const previous = sorted[index - 1];
+  // Same ladder rules as the API: unique thresholds, payouts rising with views.
+  const sorted = [...parsed].sort((a, b) => a.views - b.views);
+  sorted.forEach((current, i) => {
+    const previous = sorted[i - 1];
     if (!previous) return;
     if (current.views === previous.views) {
-      issues.push(`View threshold ${current.views} is used more than once`);
+      rowError(current.index, 'views', `Same views as milestone ${previous.index + 1}`);
     } else if (current.payout <= previous.payout) {
-      issues.push(
-        `Payout at ${current.views} views must be higher than at ${previous.views} views`,
+      rowError(
+        current.index,
+        'payout',
+        `Must be more than ${formatINR(previous.payout)} (paid at ${formatNumber(previous.views)} views)`,
       );
     }
   });
 
   const top = sorted[sorted.length - 1];
   if (top && totalBudget !== null && top.payout > totalBudget) {
-    issues.push('The top milestone payout cannot exceed the total budget');
+    errors.totalBudget = `Must cover the top payout of ${formatINR(top.payout)}`;
   }
 
-  return { issues, totalBudget, milestones: sorted };
+  const valid =
+    !errors.name && !errors.totalBudget && !errors.ladder && Object.keys(errors.rows).length === 0;
+  return {
+    valid,
+    errors,
+    totalBudget,
+    milestones: sorted.map(({ views, payout }) => ({ views, payout })),
+  };
 }

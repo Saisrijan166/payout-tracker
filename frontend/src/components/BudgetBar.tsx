@@ -5,7 +5,10 @@ export function BudgetBar({ totalBudget, spent }: { totalBudget: number; spent: 
   const remaining = Math.max(0, totalBudget - spent);
   const percent = totalBudget > 0 ? Math.min(100, Math.round((spent / totalBudget) * 100)) : 0;
   return (
-    <div className="space-y-1.5">
+    <div
+      className="space-y-1.5"
+      title={`${formatINR(spent)} of ${formatINR(totalBudget)} paid out to creators so far`}
+    >
       <div
         role="progressbar"
         aria-label="Budget spent"

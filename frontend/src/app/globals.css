@@ -8,3 +8,10 @@ body {
   background: #f8fafc;
   color: #0f172a;
 }
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}

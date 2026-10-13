@@ -1,32 +1,45 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense, useState, type FormEvent } from 'react';
+import { Suspense, useRef, useState, type FormEvent } from 'react';
 import { AuthCard } from '@/components/AuthCard';
-import { Button, ErrorAlert, Field, inputClass, Loading } from '@/components/ui';
+import { DemoAccounts } from '@/components/DemoAccounts';
+import { Button, Field, inputClass, Loading } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
+import { useToast } from '@/lib/toast';
 
 function LoginForm() {
   const { login } = useAuth();
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<unknown>(null);
   const [submitting, setSubmitting] = useState(false);
+  const submitRef = useRef<HTMLButtonElement>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError(null);
     setSubmitting(true);
     try {
-      await login(email, password); // AuthCard redirects once the session starts
+      const user = await login(email, password); // AuthCard redirects once the session starts
+      toast.success(`Welcome back, ${user.name}`);
     } catch (err) {
-      setError(err);
+      toast.fromError(err);
       setSubmitting(false);
     }
   };
 
+  const fillDemoAccount = (demoEmail: string, demoPassword: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    submitRef.current?.focus();
+  };
+
   return (
-    <AuthCard title="Log in">
+    <AuthCard
+      title="Log in"
+      subtitle="Brands manage campaigns here; creators track their posts and earnings."
+      after={<DemoAccounts selectedEmail={email} onSelect={fillDemoAccount} />}
+    >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4" noValidate>
         <Field label="Email" htmlFor="email">
           <input
@@ -50,8 +63,7 @@ function LoginForm() {
             className={inputClass}
           />
         </Field>
-        <ErrorAlert error={error} />
-        <Button type="submit" loading={submitting} className="w-full">
+        <Button ref={submitRef} type="submit" loading={submitting} className="w-full">
           Log in
         </Button>
       </form>
@@ -60,10 +72,6 @@ function LoginForm() {
         <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
           Create an account
         </Link>
-      </p>
-      <p className="mt-4 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">
-        Demo accounts (when seeded): <code>brand@memed.test</code> or{' '}
-        <code>creator@memed.test</code>, password <code>Password123!</code>
       </p>
     </AuthCard>
   );

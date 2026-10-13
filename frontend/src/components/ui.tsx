@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { useEffect, useState, type ComponentPropsWithRef, type ReactNode } from 'react';
 import { ApiError } from '@/lib/api';
 
 export const inputClass =
@@ -15,7 +15,8 @@ const BUTTON_VARIANTS = {
   ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
 } as const;
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+// React 19 passes `ref` as a normal prop, so it reaches the <button> through ...props.
+interface ButtonProps extends ComponentPropsWithRef<'button'> {
   variant?: keyof typeof BUTTON_VARIANTS;
   loading?: boolean;
 }
@@ -41,15 +42,24 @@ export function Button({
   );
 }
 
+/** Id of the error message under a field, for the input's aria-describedby. */
+export const fieldErrorId = (htmlFor: string): string => `${htmlFor}-error`;
+
+/**
+ * Label + control + hint. `error` replaces the hint with a message that points at
+ * this field; the control should set aria-invalid and aria-describedby={fieldErrorId(id)}.
+ */
 export function Field({
   label,
   htmlFor,
   hint,
+  error,
   children,
 }: {
   label: string;
   htmlFor: string;
   hint?: string;
+  error?: string;
   children: ReactNode;
 }) {
   return (
@@ -58,7 +68,13 @@ export function Field({
         {label}
       </label>
       {children}
-      {hint && <p className="text-xs text-slate-500">{hint}</p>}
+      {error ? (
+        <p id={fieldErrorId(htmlFor)} className="text-xs text-rose-600">
+          {error}
+        </p>
+      ) : (
+        hint && <p className="text-xs text-slate-500">{hint}</p>
+      )}
     </div>
   );
 }
@@ -158,11 +174,50 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
   );
 }
 
-export function PageHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+export function PageHeader({
+  title,
+  subtitle,
+  actions,
+}: {
+  title: string;
+  subtitle?: string;
+  /** Shown to the right of the title, e.g. status badges. */
+  actions?: ReactNode;
+}) {
   return (
-    <header className="mb-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
-      {subtitle && <p className="mt-1 text-sm text-slate-600">{subtitle}</p>}
+    <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
+        {subtitle && <p className="mt-1 text-sm text-slate-600">{subtitle}</p>}
+      </div>
+      {actions && <div className="flex flex-wrap gap-1.5">{actions}</div>}
     </header>
+  );
+}
+
+/** A section heading with a one-line hint underneath. */
+export function SectionHeader({
+  id,
+  title,
+  hint,
+  actions,
+  as: Heading = 'h2',
+}: {
+  id?: string;
+  title: string;
+  hint?: string;
+  actions?: ReactNode;
+  as?: 'h2' | 'h3';
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <Heading id={id} className="text-base font-semibold text-slate-900">
+          {title}
+        </Heading>
+        {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
+      </div>
+      {actions && <div className="flex-none">{actions}</div>}
+    </div>
   );
 }
