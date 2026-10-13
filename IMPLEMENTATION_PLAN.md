@@ -131,7 +131,7 @@ The repo holds two independent npm packages, with no npm workspaces. Render and 
 │   │   │   ├── milestones.ts         # parseMilestoneLadder()
 │   │   │   ├── payout.ts             # entitledPayout(), planPayout()
 │   │   │   ├── post-url.ts           # canonicalPostKey()
-│   │   │   └── spike.ts              # isViewSpike()
+│   │   │   └── spike.ts              # detectViewSpike(), describeSpike()
 │   │   ├── modules/
 │   │   │   ├── auth/                 # auth.routes.ts, auth.controller.ts, auth.service.ts, auth.schemas.ts
 │   │   │   ├── campaigns/            # campaigns.routes|controller|service|schemas.ts, campaigns.cache.ts, campaigns.dto.ts
@@ -346,7 +346,7 @@ for attempt in 1..3:
       camp     = Campaign.findById(sub.campaign).session(session)
       entitled = entitledPayout(camp.milestones, newViews)
       plan     = planPayout({ entitled, alreadyPaid: sub.paidAmount, totalBudget: camp.totalBudget, spent: camp.spent })
-      spike    = isViewSpike(last(sub.viewHistory), newViews, now)     // §10.2
+      spike    = detectViewSpike(last(sub.viewHistory), newViews, now) // §10.2
 
       if plan.grant > 0:
         camp = Campaign.findOneAndUpdate(
@@ -368,7 +368,7 @@ for attempt in 1..3:
 
       return { sub, camp, paidNow: plan.grant, entitled, unpaid: plan.unpaid }
     })
-    if result.camp.status changed to 'exhausted': invalidate the Redis live list   // runs after commit, never inside the txn
+    if result.paidNow > 0: invalidate the Redis live list   // runs after commit, never inside the txn
     return result
   catch StaleReadError: continue                                            // re-read fresh state and retry
 throw AppError(409, CONCURRENT_UPDATE, { retryable: true })
@@ -514,7 +514,7 @@ Frontend has no unit tests in scope. CI runs `lint`, `typecheck` and `build` for
 
 ### 10.1 Redis cache for the campaign list (bonus)
 - **Pattern:** cache-aside on `GET /api/campaigns` under the key `campaigns:live:v1`, holding the JSON array of DTOs with a TTL of `CAMPAIGN_CACHE_TTL_SECONDS` (default 30).
-- **Invalidation:** the key is deleted (`DEL`) when a campaign is created and when a payout commit changes a campaign's status to `exhausted`. The remaining budget shown in the list may be up to 30 s stale. This trade-off is documented. Submissions always re-check the status from MongoDB.
+- **Invalidation:** the key is deleted (`DEL`) when a campaign is created and after every payout commit that pays more than ₹0 (this covers exhaustion). Invalidating only on exhaustion left remaining budgets stale for up to the TTL, which the Docker UI smoke test caught. Submissions always re-check the status from MongoDB.
 - **Graceful degradation:** if `REDIS_URL` is unset, the cache is disabled. If Redis is down, cache errors are logged as warnings and the handler falls through to MongoDB. The client uses `lazyConnect` and `maxRetriesPerRequest: 1`, and `/api/health` reports the cache state.
 - Redis is not deployed. It runs locally and in docker-compose. Upstash's free tier is an option if needed.
 
@@ -707,10 +707,25 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `chore(deploy): add render blueprint and production configuration`
 
 **Phase 17: Documentation**
-- [ ] Write the README: overview, live links, demo credentials, local setup (both with and without Docker), environment variable tables, the API summary, payout rules with the worked example, the assumptions from §7, the testing commands, the scaling note from §10.5 and known gaps.
+- [x] Write the README: overview, live links, demo credentials, local setup (both with and without Docker), environment variable tables, the API summary, payout rules with the worked example, the assumptions from §7, the testing commands, the scaling note from §10.5 and known gaps.
 - Commit: `docs: add readme with setup, assumptions, payout rules and scaling note`
 
 **Phase 18: Final QA**
 - [ ] All tests pass. Lint and typecheck are clean. No `.env` file is committed. The repo is public. The live smoke test passes.
 - [ ] Rehearse the walkthrough: you can explain §6.4 line by line and make a small live change, such as adding a ladder rule.
 - Commit (only if something needed fixing): `fix(<scope>): <what was fixed>`
+
+---
+
+## 14. Implementation notes (as built, 13-10-2026)
+
+Where the build differs from the plan above, the code and this list win.
+
+- **Validation:** controllers call `Schema.parse(req.body)` directly instead of a `validate.ts` middleware; a `ZodError` becomes `400 VALIDATION_ERROR` in the central error handler. Path ids go through `parseObjectId` (`400 INVALID_ID`).
+- **Payout planning:** besides `entitledPayout` and `planPayout`, `domain/payout.ts` has `planViewUpdate`, which also decides "rejected" (views decreased) and "unchanged" (same count). `views.service.ts` exposes the two guarded writes as `reserveBudget` and `recordReading` so tests can call them directly.
+- **Spike flag:** `detectViewSpike` returns the gain and rate; `describeSpike` builds the stored reason. The seed backdates readings so only one demo post is flagged.
+- **Cache invalidation:** after every payout, not only on exhaustion (see §10.1). `GET /api/campaigns` sets `X-Cache: HIT | MISS | BYPASS`.
+- **Tooling:** `jest.config.js` (avoids needing ts-node), `mongodb-memory-server-core` (no postinstall download), bcryptjs 3 (ships its own types), Express 5.3, Mongoose 8.24, Next.js 15.5, Tailwind CSS 4, Zod 3.25. Tests share helpers in `tests/helpers/` (factories, seeded random, `assertInvariants`).
+- **Frontend:** client-rendered pages behind `RequireRole`; earnings tiles and campaign cards live in `creator/page.tsx`; client-side ladder checks in `lib/validation.ts`; `outputFileTracingRoot` is pinned because a lockfile in the home directory confused Next.js about the workspace root.
+- **Docs:** the scaling note is `SCALING.md`, linked from the README.
+
