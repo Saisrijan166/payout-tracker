@@ -1,4 +1,4 @@
-import mongoose, { type ClientSession } from 'mongoose';
+import mongoose, { type ClientSession, type Types } from 'mongoose';
 import { planViewUpdate } from '../../domain/payout';
 import { AppError } from '../../lib/errors';
 import {
@@ -113,46 +113,77 @@ async function runViewUpdate(
 
   let updatedCampaign = campaign;
   if (plan.grant > 0) {
-    const guarded = await CampaignModel.findOneAndUpdate(
-      {
-        _id: campaign._id,
-        $expr: { $lte: [{ $add: ['$spent', plan.grant] }, '$totalBudget'] },
-      },
-      // Pipeline update: `status` is computed from the new `spent` in the same atomic write.
-      [
-        { $set: { spent: { $add: ['$spent', plan.grant] } } },
-        {
-          $set: {
-            status: { $cond: [{ $gte: ['$spent', '$totalBudget'] }, 'exhausted', '$status'] },
-          },
-        },
-      ],
-      { new: true, session },
-    ).lean<CampaignRecord>();
-    if (!guarded) throw new StaleReadError();
-    updatedCampaign = guarded;
+    const reserved = await reserveBudget(campaign._id, plan.grant, session);
+    if (!reserved) throw new StaleReadError();
+    updatedCampaign = reserved;
   }
 
-  const updatedSubmission = await SubmissionModel.findOneAndUpdate(
-    { _id: submission._id, views: submission.views, paidAmount: submission.paidAmount },
-    {
-      $set: { views: newViews, entitledAmount: plan.entitled },
-      $inc: { paidAmount: plan.grant },
-      $push: {
-        viewHistory: {
-          $each: [{ views: newViews, at: now, paid: plan.grant }],
-          $slice: -VIEW_HISTORY_LIMIT,
-        },
-      },
-    },
-    { new: true, session },
-  ).lean<SubmissionRecord>();
+  const updatedSubmission = await recordReading(
+    submission,
+    { views: newViews, entitled: plan.entitled, paid: plan.grant, at: now },
+    session,
+  );
   if (!updatedSubmission) throw new StaleReadError();
 
   return {
     result: buildResult(updatedSubmission, updatedCampaign, plan.grant),
     exhaustedNow: campaign.status === 'live' && updatedCampaign.status === 'exhausted',
   };
+}
+
+/**
+ * Atomically adds `grant` to the campaign's spent amount, but only if the result
+ * stays within totalBudget, and marks the campaign exhausted when it reaches it.
+ * Returns null (and changes nothing) if the grant would overspend.
+ */
+export function reserveBudget(
+  campaignId: Types.ObjectId,
+  grant: number,
+  session?: ClientSession,
+): Promise<CampaignRecord | null> {
+  return CampaignModel.findOneAndUpdate(
+    { _id: campaignId, $expr: { $lte: [{ $add: ['$spent', grant] }, '$totalBudget'] } },
+    // Pipeline update: `status` is computed from the new `spent` in the same atomic write.
+    [
+      { $set: { spent: { $add: ['$spent', grant] } } },
+      {
+        $set: {
+          status: { $cond: [{ $gte: ['$spent', '$totalBudget'] }, 'exhausted', '$status'] },
+        },
+      },
+    ],
+    { new: true, session },
+  )
+    .lean<CampaignRecord>()
+    .exec();
+}
+
+/**
+ * Atomically records a reading and payment on a submission, but only if its
+ * views and paidAmount are still the values the payout was planned from.
+ * Returns null (and changes nothing) if another update got there first.
+ */
+export function recordReading(
+  expected: Pick<SubmissionRecord, '_id' | 'views' | 'paidAmount'>,
+  reading: { views: number; entitled: number; paid: number; at: Date },
+  session?: ClientSession,
+): Promise<SubmissionRecord | null> {
+  return SubmissionModel.findOneAndUpdate(
+    { _id: expected._id, views: expected.views, paidAmount: expected.paidAmount },
+    {
+      $set: { views: reading.views, entitledAmount: reading.entitled },
+      $inc: { paidAmount: reading.paid },
+      $push: {
+        viewHistory: {
+          $each: [{ views: reading.views, at: reading.at, paid: reading.paid }],
+          $slice: -VIEW_HISTORY_LIMIT,
+        },
+      },
+    },
+    { new: true, session },
+  )
+    .lean<SubmissionRecord>()
+    .exec();
 }
 
 function buildResult(
