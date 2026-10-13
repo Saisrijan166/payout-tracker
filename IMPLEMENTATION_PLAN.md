@@ -627,10 +627,10 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `chore: initialise monorepo with backend and frontend folders`
 
 **Phase 1: Backend foundation**
-- [ ] Set up `package.json`, the strict `tsconfig`, ESLint and Prettier, `tsx`, and the Jest config.
-- [ ] Add `config/env.ts` (Zod), `lib/logger.ts`, `lib/db.ts` and `lib/errors.ts`.
-- [ ] Build `app.ts` (helmet, cors allowlist, `express.json({ limit: '10kb' })`, pino-http, routes, 404 handler, error handler). Build `server.ts` with graceful shutdown.
-- [ ] Add `GET /api/health` and `backend/.env.example`.
+- [x] Set up `package.json`, the strict `tsconfig`, ESLint and Prettier, `tsx`, and the Jest config.
+- [x] Add `config/env.ts` (Zod), `lib/logger.ts`, `lib/db.ts` and `lib/errors.ts`.
+- [x] Build `app.ts` (helmet, cors allowlist, `express.json({ limit: '10kb' })`, pino-http, routes, 404 handler, error handler). Build `server.ts` with graceful shutdown.
+- [x] Add `GET /api/health` and `backend/.env.example`.
 - Commit: `feat(backend): bootstrap express app with env validation, db connection and error handling`
 
 **Phase 2: Auth**
