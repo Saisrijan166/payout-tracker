@@ -1,0 +1,69 @@
+# Local stack: MongoDB 7 (single-node replica set, needed for transactions), Redis,
+# the API and the web app.  Run:  docker compose up --build
+# Then open http://localhost:3000 (API on http://localhost:4000/api).
+name: memed-payouts
+
+services:
+  mongo:
+    # MongoDB 7, not 8: 8.x fails to start on Linux kernels >= 6.19 (SERVER-121912).
+    image: mongo:7
+    command: ['--replSet', 'rs0', '--bind_ip_all']
+    ports:
+      - '127.0.0.1:27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # Initiates the replica set on first boot; healthy once this node is primary.
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }) }; quit(db.hello().isWritablePrimary ? 0 : 1)"
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 5s
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '127.0.0.1:6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      MONGODB_URI: mongodb://mongo:27017/memed?replicaSet=rs0
+      REDIS_URL: redis://redis:6379
+      # Local use only. Set JWT_SECRET in your shell or a root .env file to override.
+      JWT_SECRET: ${JWT_SECRET:-local-docker-only-secret-change-me-0123456789}
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - '4000:4000'
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # The browser calls the API through the host's port, so this is localhost, not "backend".
+        NEXT_PUBLIC_API_URL: http://localhost:4000/api
+    ports:
+      - '3000:3000'
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  mongo-data:

@@ -694,7 +694,7 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `feat(submissions): flag submissions with unusually fast view spikes`
 
 **Phase 14: Docker (stretch)**
-- [ ] Write both Dockerfiles, both `.dockerignore` files and `docker-compose.yml` with a single-node `rs0` replica set and Redis. Check that `docker compose up --build` runs end to end.
+- [x] Write both Dockerfiles, both `.dockerignore` files and `docker-compose.yml` with a single-node `rs0` replica set and Redis. Check that `docker compose up --build` runs end to end.
 - Commit: `build: dockerise backend and frontend with docker-compose`
 
 **Phase 15: CI (optional)**
