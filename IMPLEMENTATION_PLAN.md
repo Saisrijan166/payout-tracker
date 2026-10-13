@@ -686,7 +686,7 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `feat(frontend): add creator dashboard to browse campaigns, submit posts and track earnings`
 
 **Phase 12: Redis cache (bonus)**
-- [ ] Write `lib/redis.ts` and `campaigns.cache.ts` with cache-aside reads, invalidation on create and on exhaustion, and graceful fallback. Report the cache state in `/api/health`.
+- [x] Write `lib/redis.ts` and `campaigns.cache.ts` with cache-aside reads, invalidation on create and on exhaustion, and graceful fallback. Report the cache state in `/api/health`.
 - Commit: `feat(campaigns): cache live campaign list in redis with graceful fallback`
 
 **Phase 13: Spike flagging (bonus)**

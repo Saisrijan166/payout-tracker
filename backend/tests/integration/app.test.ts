@@ -8,7 +8,7 @@ describe('GET /api/health without a database', () => {
   it('returns 503 and reports the database as down', async () => {
     const res = await request(app).get('/api/health');
     expect(res.status).toBe(503);
-    expect(res.body).toEqual({ status: 'degraded', db: 'down' });
+    expect(res.body).toEqual({ status: 'degraded', db: 'down', redis: 'disabled' });
   });
 });
 
@@ -18,7 +18,7 @@ describe('app foundation', () => {
   it('GET /api/health returns 200 when MongoDB is connected', async () => {
     const res = await request(app).get('/api/health');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ status: 'ok', db: 'up' });
+    expect(res.body).toEqual({ status: 'ok', db: 'up', redis: 'disabled' });
   });
 
   it('unknown routes return a 404 error envelope', async () => {

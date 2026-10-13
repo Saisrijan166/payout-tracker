@@ -35,6 +35,12 @@ const EnvSchema = z.object({
   JWT_EXPIRES_IN: durationInSeconds.default('1d'),
   BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(10),
   CORS_ORIGIN: csvList.default('http://localhost:3000'),
+  // Optional: leaving it empty disables the campaign list cache.
+  REDIS_URL: z
+    .string()
+    .optional()
+    .transform((value) => (value?.trim() ? value.trim() : undefined)),
+  CAMPAIGN_CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(30),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
 

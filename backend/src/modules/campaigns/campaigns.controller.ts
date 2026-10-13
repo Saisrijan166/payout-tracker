@@ -18,7 +18,8 @@ export const createCampaignHandler: RequestHandler = async (req, res) => {
 };
 
 export const listLiveCampaignsHandler: RequestHandler = async (_req, res) => {
-  res.json({ campaigns: await listLiveCampaigns() });
+  const { campaigns, cache } = await listLiveCampaigns();
+  res.set('X-Cache', cache).json({ campaigns });
 };
 
 export const listMyCampaignsHandler: RequestHandler = async (req, res) => {

@@ -11,6 +11,7 @@ import {
   VIEW_HISTORY_LIMIT,
   type SubmissionRecord,
 } from '../../models/submission.model';
+import { invalidateLiveCampaigns } from '../campaigns/campaigns.cache';
 import { toCampaignSummary, toSubmissionDTO, type SubmissionDTO } from './submissions.dto';
 
 export interface ViewUpdateResult {
@@ -58,6 +59,9 @@ export async function applyViewUpdate(
       const outcome = await mongoose.connection.transaction((session) =>
         runViewUpdate(session, submissionId, newViews, now),
       );
+      // After commit (never inside the transaction, which may retry): an exhausted
+      // campaign must drop out of the cached live list.
+      if (outcome.exhaustedNow) await invalidateLiveCampaigns();
       return outcome.result;
     } catch (err) {
       if (!(err instanceof StaleReadError)) throw err;
