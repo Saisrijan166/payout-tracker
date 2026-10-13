@@ -36,7 +36,7 @@ export async function writeLiveCampaigns(campaigns: CampaignDTO[]): Promise<void
   }
 }
 
-/** Called when the live list changes: a campaign is created or runs out of budget. */
+/** Called when the live list changes: a campaign is created, or a payout changes its budget. */
 export async function invalidateLiveCampaigns(): Promise<void> {
   const redis = getRedis();
   if (!redis) return;

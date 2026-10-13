@@ -22,12 +22,6 @@ export interface ViewUpdateResult {
   campaign: { id: string; spent: number; remaining: number; status: CampaignStatus };
 }
 
-interface TransactionOutcome {
-  result: ViewUpdateResult;
-  /** True when this update used up the last of the campaign budget. */
-  exhaustedNow: boolean;
-}
-
 /** A guarded write matched nothing: another update changed the documents first. */
 class StaleReadError extends Error {
   constructor() {
@@ -58,13 +52,14 @@ export async function applyViewUpdate(
 ): Promise<ViewUpdateResult> {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     try {
-      const outcome = await mongoose.connection.transaction((session) =>
+      const result = await mongoose.connection.transaction((session) =>
         runViewUpdate(session, submissionId, newViews, now),
       );
-      // After commit (never inside the transaction, which may retry): an exhausted
-      // campaign must drop out of the cached live list.
-      if (outcome.exhaustedNow) await invalidateLiveCampaigns();
-      return outcome.result;
+      // After commit (never inside the transaction, which may retry): a payout changed
+      // the campaign's remaining budget, and may have exhausted it, so the cached
+      // live list is stale.
+      if (result.payout.paidNow > 0) await invalidateLiveCampaigns();
+      return result;
     } catch (err) {
       if (!(err instanceof StaleReadError)) throw err;
     }
@@ -82,7 +77,7 @@ async function runViewUpdate(
   submissionId: string,
   newViews: number,
   now: Date,
-): Promise<TransactionOutcome> {
+): Promise<ViewUpdateResult> {
   const submission = await SubmissionModel.findById(submissionId)
     .session(session)
     .lean<SubmissionRecord>();
@@ -114,7 +109,7 @@ async function runViewUpdate(
     );
   }
   if (plan.kind === 'unchanged') {
-    return { result: buildResult(submission, campaign, 0), exhaustedNow: false };
+    return buildResult(submission, campaign, 0);
   }
 
   let updatedCampaign = campaign;
@@ -139,10 +134,7 @@ async function runViewUpdate(
   );
   if (!updatedSubmission) throw new StaleReadError();
 
-  return {
-    result: buildResult(updatedSubmission, updatedCampaign, plan.grant),
-    exhaustedNow: campaign.status === 'live' && updatedCampaign.status === 'exhausted',
-  };
+  return buildResult(updatedSubmission, updatedCampaign, plan.grant);
 }
 
 /**

@@ -60,7 +60,7 @@ describe('campaign list cache', () => {
       await getRedis()?.flushdb();
     });
 
-    it('caches the live list and invalidates it on create and on budget exhaustion', async () => {
+    it('caches the live list and invalidates it on create and on every payout', async () => {
       const brand = await signupAs(app, 'brand');
       const creator = await signupAs(app, 'creator');
       const list = () =>
@@ -87,8 +87,19 @@ describe('campaign list cache', () => {
         small.id,
       ]);
 
-      // Exhausting a campaign's budget removes it from the cached list.
+      // A payout that leaves budget changes `remaining`, so the cached list is refreshed.
       await list(); // warm the cache again
+      const bigPost = await submitPostAs(app, creator.token, big.id);
+      await patchViews(app, bigPost.id, 10_000).expect(200);
+      const afterPayout = await list();
+      expect(afterPayout.headers['x-cache']).toBe('MISS');
+      expect(afterPayout.body.campaigns[0]).toMatchObject({ id: big.id, remaining: 5_500 });
+
+      // A view update that pays nothing leaves the cache alone.
+      await patchViews(app, bigPost.id, 10_500).expect(200);
+      expect((await list()).headers['x-cache']).toBe('HIT');
+
+      // Exhausting a campaign's budget removes it from the cached list.
       const submission = await submitPostAs(app, creator.token, small.id);
       await patchViews(app, submission.id, 10).expect(200);
       const afterExhaustion = await list();
