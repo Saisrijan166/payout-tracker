@@ -5,8 +5,8 @@ import { CampaignModel, type CampaignRecord } from '../../models/campaign.model'
 import { SubmissionModel, type SubmissionRecord } from '../../models/submission.model';
 import { UserModel, type UserRecord } from '../../models/user.model';
 import {
+  toCampaignSummary,
   toSubmissionDTO,
-  type CampaignSummary,
   type CreatorSummary,
   type SubmissionDTO,
 } from './submissions.dto';
@@ -16,12 +16,6 @@ const PLATFORM_LABEL = { instagram: 'Instagram', youtube: 'YouTube' } as const;
 
 const duplicate = (): AppError =>
   new AppError(409, 'DUPLICATE_SUBMISSION', 'This post has already been submitted to a campaign');
-
-function campaignSummary(
-  campaign: Pick<CampaignRecord, '_id' | 'name' | 'platform'>,
-): CampaignSummary {
-  return { id: campaign._id.toString(), name: campaign.name, platform: campaign.platform };
-}
 
 export async function createSubmission(
   creatorId: string,
@@ -67,7 +61,7 @@ export async function createSubmission(
       viewHistory: [{ views: 0, at: new Date(), paid: 0 }],
     });
     return toSubmissionDTO(submission.toObject<SubmissionRecord>(), {
-      campaign: campaignSummary(campaign),
+      campaign: toCampaignSummary(campaign),
     });
   } catch (err) {
     // Two submissions of the same post racing past exists(): the unique index decides.
@@ -95,7 +89,7 @@ export async function listCreatorSubmissions(creatorId: string): Promise<Creator
   const campaigns = await CampaignModel.find({ _id: { $in: campaignIds } })
     .select('name platform')
     .lean<Pick<CampaignRecord, '_id' | 'name' | 'platform'>[]>();
-  const campaignById = new Map(campaigns.map((c) => [c._id.toString(), campaignSummary(c)]));
+  const campaignById = new Map(campaigns.map((c) => [c._id.toString(), toCampaignSummary(c)]));
 
   const dtos = submissions.map((s) =>
     toSubmissionDTO(s, { campaign: campaignById.get(s.campaign.toString()) }),

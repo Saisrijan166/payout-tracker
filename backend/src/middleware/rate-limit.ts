@@ -14,3 +14,6 @@ const shared: Partial<Options> = {
 
 /** Signup and login: slows down credential stuffing. */
 export const authLimiter = rateLimit({ ...shared, windowMs: 15 * 60 * 1000, limit: 50 });
+
+/** View-count updates are unauthenticated (they simulate platform data), so cap them per IP. */
+export const viewsLimiter = rateLimit({ ...shared, windowMs: 60 * 1000, limit: 120 });

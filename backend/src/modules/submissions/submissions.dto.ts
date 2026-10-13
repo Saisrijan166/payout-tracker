@@ -1,4 +1,5 @@
 import type { Platform } from '../../domain/platform';
+import type { CampaignRecord } from '../../models/campaign.model';
 import type { SubmissionRecord } from '../../models/submission.model';
 
 export interface CampaignSummary {
@@ -28,6 +29,12 @@ export interface SubmissionDTO {
   flagReason?: string;
   lastViewsAt: string;
   createdAt: string;
+}
+
+export function toCampaignSummary(
+  campaign: Pick<CampaignRecord, '_id' | 'name' | 'platform'>,
+): CampaignSummary {
+  return { id: campaign._id.toString(), name: campaign.name, platform: campaign.platform };
 }
 
 export function toSubmissionDTO(

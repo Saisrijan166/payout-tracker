@@ -21,7 +21,11 @@ export type ErrorCode =
   | 'CAMPAIGN_NOT_LIVE'
   | 'INVALID_POST_URL'
   | 'PLATFORM_MISMATCH'
-  | 'DUPLICATE_SUBMISSION';
+  | 'DUPLICATE_SUBMISSION'
+  // view updates and payouts
+  | 'SUBMISSION_NOT_FOUND'
+  | 'VIEWS_DECREASED'
+  | 'CONCURRENT_UPDATE';
 
 /**
  * An error that maps directly to an HTTP response.

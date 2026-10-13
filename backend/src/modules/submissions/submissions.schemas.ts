@@ -8,3 +8,15 @@ export const CreateSubmissionSchema = z
   .strict();
 
 export type CreateSubmissionInput = z.infer<typeof CreateSubmissionSchema>;
+
+export const UpdateViewsSchema = z
+  .object({
+    views: z
+      .number({ required_error: 'views is required', invalid_type_error: 'views must be a number' })
+      .int('views must be a whole number')
+      .nonnegative('views cannot be negative')
+      .safe(),
+  })
+  .strict();
+
+export type UpdateViewsInput = z.infer<typeof UpdateViewsSchema>;

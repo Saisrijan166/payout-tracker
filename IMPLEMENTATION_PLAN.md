@@ -658,9 +658,9 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `feat(submissions): add post submission with url canonicalisation and duplicate checks`
 
 **Phase 6: View updates and payouts**
-- [ ] Write `views.service.ts` (`applyViewUpdate`) exactly as in §6.4: transaction, `$expr` guard, optimistic submission guard and bounded retry.
-- [ ] Add `PATCH /submissions/:id/views` with no auth and with `viewsLimiter`.
-- [ ] Write `views.test.ts`, which replays the worked example in §6.6.
+- [x] Write `views.service.ts` (`applyViewUpdate`) exactly as in §6.4: transaction, `$expr` guard, optimistic submission guard and bounded retry.
+- [x] Add `PATCH /submissions/:id/views` with no auth and with `viewsLimiter`.
+- [x] Write `views.test.ts`, which replays the worked example in §6.6.
 - Commit: `feat(payouts): pay milestone deltas on view updates with atomic budget guard`
 
 **Phase 7: Concurrency proof (stretch)**
