@@ -640,8 +640,8 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `feat(auth): add jwt signup and login with brand and creator roles`
 
 **Phase 3: Payout domain (pure functions) + unit tests**
-- [ ] Write `domain/milestones.ts` (`parseMilestoneLadder`) and `domain/payout.ts` (`entitledPayout`, `planPayout`).
-- [ ] Cover every case in §9.1–9.3 for milestones and payouts, including the property test. Reach 100 % line coverage of `domain/`.
+- [x] Write `domain/milestones.ts` (`parseMilestoneLadder`) and `domain/payout.ts` (`entitledPayout`, `planPayout`).
+- [x] Cover every case in §9.1–9.3 for milestones and payouts, including the property test. Reach 100 % line coverage of `domain/`.
 - Commit: `feat(payouts): add milestone ladder validation and budget-capped payout calculation`
 
 **Phase 4: Campaigns API**
