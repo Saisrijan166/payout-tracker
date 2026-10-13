@@ -15,6 +15,12 @@ export interface CampaignDTO {
   createdAt: string;
 }
 
+/** A brand's view of its own campaign, with submission activity. */
+export interface BrandCampaignDTO extends CampaignDTO {
+  submissionCount: number;
+  flaggedCount: number;
+}
+
 export function toCampaignDTO(campaign: CampaignRecord): CampaignDTO {
   return {
     id: campaign._id.toString(),

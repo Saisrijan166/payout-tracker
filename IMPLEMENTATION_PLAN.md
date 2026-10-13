@@ -651,10 +651,10 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `feat(campaigns): add campaign creation, live listing and brand budget overview`
 
 **Phase 5: Submissions API**
-- [ ] Write `domain/post-url.ts` (`canonicalPostKey`) and its unit tests.
-- [ ] Add the Submission model, the unique `postKey` index and the seeded `viewHistory`.
-- [ ] Add `POST /submissions`, with the live check, platform match, and E11000 mapped to 409. Add `GET /submissions/mine` with its summary.
-- [ ] Write `submissions.test.ts`.
+- [x] Write `domain/post-url.ts` (`canonicalPostKey`) and its unit tests.
+- [x] Add the Submission model, the unique `postKey` index and the seeded `viewHistory`.
+- [x] Add `POST /submissions`, with the live check, platform match, and E11000 mapped to 409. Add `GET /submissions/mine` with its summary.
+- [x] Write `submissions.test.ts`.
 - Commit: `feat(submissions): add post submission with url canonicalisation and duplicate checks`
 
 **Phase 6: View updates and payouts**

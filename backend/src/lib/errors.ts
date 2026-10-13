@@ -16,7 +16,12 @@ export type ErrorCode =
   | 'INVALID_CREDENTIALS'
   // campaigns
   | 'INVALID_MILESTONES'
-  | 'CAMPAIGN_NOT_FOUND';
+  | 'CAMPAIGN_NOT_FOUND'
+  // submissions
+  | 'CAMPAIGN_NOT_LIVE'
+  | 'INVALID_POST_URL'
+  | 'PLATFORM_MISMATCH'
+  | 'DUPLICATE_SUBMISSION';
 
 /**
  * An error that maps directly to an HTTP response.

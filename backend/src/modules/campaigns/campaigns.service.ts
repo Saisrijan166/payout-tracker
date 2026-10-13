@@ -2,7 +2,8 @@ import { Types } from 'mongoose';
 import { parseMilestoneLadder } from '../../domain/milestones';
 import { AppError } from '../../lib/errors';
 import { CampaignModel, type CampaignRecord } from '../../models/campaign.model';
-import { toCampaignDTO, type CampaignDTO } from './campaigns.dto';
+import { countSubmissionsByCampaign } from '../submissions/submissions.service';
+import { toCampaignDTO, type BrandCampaignDTO, type CampaignDTO } from './campaigns.dto';
 import type { CreateCampaignInput } from './campaigns.schemas';
 
 /** The live list is capped; pagination is noted in SCALING.md. */
@@ -40,11 +41,15 @@ export async function listLiveCampaigns(): Promise<CampaignDTO[]> {
   return campaigns.map(toCampaignDTO);
 }
 
-export async function listBrandCampaigns(brandId: string): Promise<CampaignDTO[]> {
+export async function listBrandCampaigns(brandId: string): Promise<BrandCampaignDTO[]> {
   const campaigns = await CampaignModel.find({ brand: brandId })
     .sort({ createdAt: -1, _id: -1 })
     .lean<CampaignRecord[]>();
-  return campaigns.map(toCampaignDTO);
+  const counts = await countSubmissionsByCampaign(campaigns.map((c) => c._id));
+  return campaigns.map((campaign) => ({
+    ...toCampaignDTO(campaign),
+    ...(counts.get(campaign._id.toString()) ?? { submissionCount: 0, flaggedCount: 0 }),
+  }));
 }
 
 /** Loads a campaign for its owning brand: 404 if missing, 403 if another brand owns it. */

@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 import { parseObjectId } from '../../lib/errors';
 import { getAuthUser } from '../../middleware/auth';
+import { listCampaignSubmissions } from '../submissions/submissions.service';
 import { toCampaignDTO } from './campaigns.dto';
 import { CreateCampaignSchema } from './campaigns.schemas';
 import {
@@ -27,5 +28,6 @@ export const listMyCampaignsHandler: RequestHandler = async (req, res) => {
 export const getCampaignHandler: RequestHandler = async (req, res) => {
   const campaignId = parseObjectId(req.params.id, 'campaign id');
   const campaign = await getOwnedCampaign(getAuthUser(req).id, campaignId);
-  res.json({ campaign: toCampaignDTO(campaign) });
+  const submissions = await listCampaignSubmissions(campaignId);
+  res.json({ campaign: toCampaignDTO(campaign), submissions });
 };
