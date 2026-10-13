@@ -645,9 +645,9 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `feat(payouts): add milestone ladder validation and budget-capped payout calculation`
 
 **Phase 4: Campaigns API**
-- [ ] Add the Campaign model, its indexes and the DTO mapper with derived `remaining`.
-- [ ] Add `POST /campaigns`, `GET /campaigns`, `GET /campaigns/mine` and `GET /campaigns/:id` (owner only).
-- [ ] Write `campaigns.test.ts`.
+- [x] Add the Campaign model, its indexes and the DTO mapper with derived `remaining`.
+- [x] Add `POST /campaigns`, `GET /campaigns`, `GET /campaigns/mine` and `GET /campaigns/:id` (owner only).
+- [x] Write `campaigns.test.ts`.
 - Commit: `feat(campaigns): add campaign creation, live listing and brand budget overview`
 
 **Phase 5: Submissions API**

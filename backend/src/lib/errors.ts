@@ -13,7 +13,10 @@ export type ErrorCode =
   | 'INTERNAL_ERROR'
   // auth
   | 'EMAIL_TAKEN'
-  | 'INVALID_CREDENTIALS';
+  | 'INVALID_CREDENTIALS'
+  // campaigns
+  | 'INVALID_MILESTONES'
+  | 'CAMPAIGN_NOT_FOUND';
 
 /**
  * An error that maps directly to an HTTP response.
@@ -38,8 +41,8 @@ export function isDuplicateKeyError(err: unknown): boolean {
 const OBJECT_ID = /^[a-f\d]{24}$/i;
 
 /** Validates a path parameter as a MongoDB ObjectId, or throws 400 INVALID_ID. */
-export function parseObjectId(value: string | undefined, label = 'id'): string {
-  if (!value || !OBJECT_ID.test(value)) {
+export function parseObjectId(value: unknown, label = 'id'): string {
+  if (typeof value !== 'string' || !OBJECT_ID.test(value)) {
     throw new AppError(400, 'INVALID_ID', `Invalid ${label}`);
   }
   return value;
