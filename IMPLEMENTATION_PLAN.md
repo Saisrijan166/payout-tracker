@@ -703,7 +703,7 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 
 **Phase 16: Deployment**
 - [x] Add `render.yaml` (Render Blueprint) and production settings (`trust proxy`, pinned Node 22, generated `JWT_SECRET`).
-- [ ] Complete §12 steps 1–6 (Atlas, Render, seed, Vercel, CORS and the smoke test). Pending: needs the account owner to create the Atlas, Render and Vercel accounts.
+- [x] Complete §12 steps 1–6 (Atlas, Render, seed, Vercel, CORS and the smoke test). Live at https://payout-tracker-ruddy.vercel.app with the API at https://memed-payouts-api.onrender.com/api (verified 14-10-2026).
 - Commit: `chore(deploy): add render blueprint and production configuration`
 
 **Phase 17: Documentation**
@@ -713,7 +713,7 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 **Phase 18: Final QA**
 - [x] All 157 tests pass (including the real-Redis cache tests); lint and typecheck are clean; both production builds pass; only `.env.example` files are committed (13-10-2026).
 - [x] `docker compose up --build` on a fresh volume passes a 23-check end-to-end API smoke test and a headless-Chrome run of the brand → creator UI flow; the seed works inside the container (13-10-2026).
-- [ ] Push to a **public** GitHub repo and pass the live smoke test after deployment (§12). Pending: needs the account owner.
+- [x] Push to a **public** GitHub repo and pass the live smoke test after deployment (§12). Public at https://github.com/Saisrijan166/payout-tracker; CI green; live demo logins checked (14-10-2026).
 - [ ] Rehearse the walkthrough: you can explain §6.4 line by line and make a small live change, such as adding a ladder rule.
 - Commit (only if something needed fixing): `fix(<scope>): <what was fixed>`
 
