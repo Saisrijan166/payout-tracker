@@ -672,9 +672,9 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `chore(backend): add seed script for demo accounts and campaigns`
 
 **Phase 9: Frontend foundation and auth**
-- [ ] Scaffold Next.js with TypeScript, the App Router and Tailwind. Add `lib/api.ts`, `lib/types.ts` and `lib/format.ts`.
-- [ ] Add `AuthProvider`, `RequireRole`, the login and signup pages, the role redirect on `/`, and the Navbar with logout.
-- [ ] Add `frontend/.env.example`.
+- [x] Scaffold Next.js with TypeScript, the App Router and Tailwind. Add `lib/api.ts`, `lib/types.ts` and `lib/format.ts`.
+- [x] Add `AuthProvider`, `RequireRole`, the login and signup pages, the role redirect on `/`, and the Navbar with logout.
+- [x] Add `frontend/.env.example`.
 - Commit: `feat(frontend): add auth flow with jwt storage and role-based route guards`
 
 **Phase 10: Brand dashboard**
