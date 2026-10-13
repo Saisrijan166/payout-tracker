@@ -664,7 +664,7 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `feat(payouts): pay milestone deltas on view updates with atomic budget guard`
 
 **Phase 7: Concurrency proof (stretch)**
-- [ ] Write `tests/helpers/invariants.ts` and `concurrency.test.ts` covering the scenarios in §9.5.
+- [x] Write `tests/helpers/invariants.ts` and `concurrency.test.ts` covering the scenarios in §9.5.
 - Commit: `test(payouts): prove no overspend or double-pay under concurrent view updates`
 
 **Phase 8: Seed data**
