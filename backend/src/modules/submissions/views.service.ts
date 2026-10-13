@@ -1,5 +1,7 @@
 import mongoose, { type ClientSession, type Types } from 'mongoose';
+import { env } from '../../config/env';
 import { planViewUpdate } from '../../domain/payout';
+import { describeSpike, detectViewSpike } from '../../domain/spike';
 import { AppError } from '../../lib/errors';
 import {
   CampaignModel,
@@ -122,9 +124,17 @@ async function runViewUpdate(
     updatedCampaign = reserved;
   }
 
+  // Flag unusually fast growth for review. Informational only: the payout still goes through.
+  const previous = submission.viewHistory.at(-1) ?? { views: 0, at: submission.createdAt };
+  const spike = detectViewSpike(previous, newViews, now, {
+    minGain: env.SPIKE_MIN_GAIN,
+    viewsPerMinute: env.SPIKE_VIEWS_PER_MIN,
+  });
+  const flagReason = spike.isSpike && !submission.flagged ? describeSpike(spike) : undefined;
+
   const updatedSubmission = await recordReading(
     submission,
-    { views: newViews, entitled: plan.entitled, paid: plan.grant, at: now },
+    { views: newViews, entitled: plan.entitled, paid: plan.grant, at: now, flagReason },
     session,
   );
   if (!updatedSubmission) throw new StaleReadError();
@@ -169,13 +179,21 @@ export function reserveBudget(
  */
 export function recordReading(
   expected: Pick<SubmissionRecord, '_id' | 'views' | 'paidAmount'>,
-  reading: { views: number; entitled: number; paid: number; at: Date },
+  reading: { views: number; entitled: number; paid: number; at: Date; flagReason?: string },
   session?: ClientSession,
 ): Promise<SubmissionRecord | null> {
   return SubmissionModel.findOneAndUpdate(
     { _id: expected._id, views: expected.views, paidAmount: expected.paidAmount },
     {
-      $set: { views: reading.views, entitledAmount: reading.entitled },
+      $set: {
+        views: reading.views,
+        entitledAmount: reading.entitled,
+        ...(reading.flagReason && {
+          flagged: true,
+          flagReason: reading.flagReason,
+          flaggedAt: reading.at,
+        }),
+      },
       $inc: { paidAmount: reading.paid },
       $push: {
         viewHistory: {

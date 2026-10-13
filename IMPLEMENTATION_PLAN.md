@@ -690,7 +690,7 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `feat(campaigns): cache live campaign list in redis with graceful fallback`
 
 **Phase 13: Spike flagging (bonus)**
-- [ ] Write `domain/spike.ts` and its unit tests. Call it from `applyViewUpdate` and show the flag badge in both dashboards.
+- [x] Write `domain/spike.ts` and its unit tests. Call it from `applyViewUpdate` and show the flag badge in both dashboards.
 - Commit: `feat(submissions): flag submissions with unusually fast view spikes`
 
 **Phase 14: Docker (stretch)**

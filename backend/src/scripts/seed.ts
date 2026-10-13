@@ -58,24 +58,35 @@ const CAMPAIGNS: {
   },
 ];
 
-const SUBMISSIONS: { creator: string; campaign: string; postUrl: string; views: number }[] = [
+// `postedMinutesAgo` backdates the first reading so growth looks organic (two days) or,
+// for the reel, fast enough to trip the view-spike flag (12,500 views in 3 minutes).
+const SUBMISSIONS: {
+  creator: string;
+  campaign: string;
+  postUrl: string;
+  views: number;
+  postedMinutesAgo: number;
+}[] = [
   {
     creator: 'creatorA',
     campaign: 'diwali',
     postUrl: 'https://www.instagram.com/p/DemoPost001/',
     views: 62_000,
+    postedMinutesAgo: 2 * 24 * 60,
   },
   {
     creator: 'creatorB',
     campaign: 'diwali',
     postUrl: 'https://www.instagram.com/reel/DemoReel002/',
     views: 12_500,
+    postedMinutesAgo: 3,
   },
   {
     creator: 'creatorA',
     campaign: 'cricket',
     postUrl: 'https://youtu.be/DemoVid0001',
     views: 140_000,
+    postedMinutesAgo: 2 * 24 * 60,
   },
 ];
 
@@ -103,6 +114,7 @@ async function upsertSubmission(
   creator: UserRecord,
   campaign: CampaignRecord,
   postUrl: string,
+  postedMinutesAgo: number,
 ): Promise<SubmissionRecord> {
   const parsed = canonicalPostKey(postUrl, campaign.platform);
   if (!parsed.ok) throw new Error(`Seed post URL is invalid: ${postUrl}`);
@@ -113,7 +125,7 @@ async function upsertSubmission(
     creator: creator._id,
     postUrl,
     postKey: parsed.key,
-    viewHistory: [{ views: 0, at: new Date(), paid: 0 }],
+    viewHistory: [{ views: 0, at: new Date(Date.now() - postedMinutesAgo * 60_000), paid: 0 }],
   });
   return created.toObject<SubmissionRecord>();
 }
@@ -142,6 +154,7 @@ async function seed(): Promise<void> {
       pick(users, entry.creator),
       pick(campaigns, entry.campaign),
       entry.postUrl,
+      entry.postedMinutesAgo,
     );
     try {
       const result = await applyViewUpdate(submission._id.toString(), entry.views);

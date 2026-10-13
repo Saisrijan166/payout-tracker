@@ -41,6 +41,9 @@ const EnvSchema = z.object({
     .optional()
     .transform((value) => (value?.trim() ? value.trim() : undefined)),
   CAMPAIGN_CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(30),
+  // View-spike flag: at least SPIKE_MIN_GAIN new views at SPIKE_VIEWS_PER_MIN or faster.
+  SPIKE_MIN_GAIN: z.coerce.number().int().positive().default(10_000),
+  SPIKE_VIEWS_PER_MIN: z.coerce.number().int().positive().default(1_000),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
 

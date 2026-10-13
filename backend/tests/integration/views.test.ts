@@ -187,4 +187,43 @@ describe('PATCH /api/submissions/:id/views', () => {
     const stored = await CampaignModel.findById(campaign.id).lean();
     expect(stored?.spent).toBe(6_000);
   });
+
+  describe('view-spike flag', () => {
+    it('flags a sudden jump but still pays the milestone', async () => {
+      const { a } = await workedExampleSetup();
+      const res = await patchViews(app, a.id, 15_000); // seconds after submission
+      expect(res.status).toBe(200);
+      expect(res.body.payout.paidNow).toBe(500);
+      expect(res.body.submission.flagged).toBe(true);
+      expect(res.body.submission.flagReason).toMatch(/^\+15,000 views in under a minute/);
+    });
+
+    it('does not flag the same gain spread over two hours', async () => {
+      const { a } = await workedExampleSetup();
+      await SubmissionModel.updateOne(
+        { _id: a.id },
+        { $set: { 'viewHistory.0.at': new Date(Date.now() - 2 * 60 * 60_000) } },
+      );
+      const res = await patchViews(app, a.id, 15_000);
+      expect(res.body.submission.flagged).toBe(false);
+      expect(res.body.submission.flagReason).toBeUndefined();
+    });
+
+    it('keeps the flag and its first reason on later updates', async () => {
+      const { brand, campaign, a } = await workedExampleSetup();
+      const first = await patchViews(app, a.id, 15_000);
+      await patchViews(app, a.id, 15_500).expect(200);
+
+      const stored = await SubmissionModel.findById(a.id).lean();
+      expect(stored?.flagged).toBe(true);
+      expect(stored?.flagReason).toBe(first.body.submission.flagReason);
+
+      const mine = await request(app)
+        .get('/api/campaigns/mine')
+        .set('Authorization', bearer(brand.token));
+      expect(mine.body.campaigns).toEqual([
+        expect.objectContaining({ id: campaign.id, submissionCount: 3, flaggedCount: 1 }),
+      ]);
+    });
+  });
 });
