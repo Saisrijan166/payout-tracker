@@ -698,7 +698,7 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `build: dockerise backend and frontend with docker-compose`
 
 **Phase 15: CI (optional)**
-- [ ] Write `.github/workflows/ci.yml`. It runs lint, typecheck and test for the backend, and lint, typecheck and build for the frontend, on every push and pull request.
+- [x] Write `.github/workflows/ci.yml`. It runs lint, typecheck and test for the backend, and lint, typecheck and build for the frontend, on every push and pull request.
 - Commit: `ci: run lint, typecheck and tests on push`
 
 **Phase 16: Deployment**
