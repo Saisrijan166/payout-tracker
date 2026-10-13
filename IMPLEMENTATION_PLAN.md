@@ -711,7 +711,9 @@ Phases 0–11 and 16–18 are the must-haves. Bonus and stretch work (Phases 7, 
 - Commit: `docs: add readme with setup, assumptions, payout rules and scaling note`
 
 **Phase 18: Final QA**
-- [ ] All tests pass. Lint and typecheck are clean. No `.env` file is committed. The repo is public. The live smoke test passes.
+- [x] All 157 tests pass (including the real-Redis cache tests); lint and typecheck are clean; both production builds pass; only `.env.example` files are committed (13-10-2026).
+- [x] `docker compose up --build` on a fresh volume passes a 23-check end-to-end API smoke test and a headless-Chrome run of the brand → creator UI flow; the seed works inside the container (13-10-2026).
+- [ ] Push to a **public** GitHub repo and pass the live smoke test after deployment (§12). Pending: needs the account owner.
 - [ ] Rehearse the walkthrough: you can explain §6.4 line by line and make a small live change, such as adding a ladder rule.
 - Commit (only if something needed fixing): `fix(<scope>): <what was fixed>`
 
